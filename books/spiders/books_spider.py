@@ -7,7 +7,7 @@ class BooksSpiderSpider(scrapy.Spider):
     allowed_domains = ["books.toscrape.com"]
     start_urls = ["https://books.toscrape.com/"]
 
-    def parse(self, response: Response, **kwargs):
+    def parse(self, response: Response, **kwargs) -> None:
 
         for book in response.css(".product_pod"):
             detail_url = response.urljoin(book.css("h3 > a::attr(href)").get())
@@ -19,9 +19,11 @@ class BooksSpiderSpider(scrapy.Spider):
             yield scrapy.Request(next_page_url, callback=self.parse)
 
     @staticmethod
-    def parse_book_details(response) -> dict[str, str | int]:
+    def parse_book_details(response: Response) -> None:
         title = response.css(".product_main h1::text").get()
-        price = float(response.css(".price_color::text").get().replace("£", ""))
+        price = float(
+            response.css(".price_color::text").get().replace("£", "")
+        )
         category = response.css(".breadcrumb li:nth-child(3) a::text").get()
         description = response.css(".sub-header + p::text").get()
         upc = response.css(
@@ -32,7 +34,9 @@ class BooksSpiderSpider(scrapy.Spider):
         amount_is_stock = int("".join(stock_text).split()[2][1:])
 
         num_rating = ["One", "Two", "Three", "Four", "Five"]
-        rating_word = response.css(".star-rating::attr(class)").get().split()[-1]
+        rating_word = response.css(
+            ".star-rating::attr(class)"
+        ).get().split()[-1]
         rating = num_rating.index(rating_word) + 1
 
         yield {
